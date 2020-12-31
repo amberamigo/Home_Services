@@ -61,11 +61,12 @@ passport.deserializeUser(function(id, done) {
   });
 });
 
+
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-     callbackURL: absoluteURI + "/auth/google/secrets",
-      proxy: true 
+    callbackURL: "/auth/google/secrets",
+    proxy: true
   },
   function(accessToken, refreshToken, profile, cb) {
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
