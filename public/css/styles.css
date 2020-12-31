@@ -63,3 +63,8 @@ a:hover {
 .round {
   border-radius: 50%;
 }
+
+.btn-outline{
+  background-color: #ddd;
+  margin-left: 10px;
+}
