@@ -36,7 +36,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-/////////////////google OAuth ///////////////////////
+//////////////////////////////////google OAuth ///////////////////////////////////////////////////////
+
 const userSchema = new mongoose.Schema ({
   email : String, 
   password : String,
@@ -85,7 +86,16 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 
 app.get("/", function(req, res){
-  res.render("start");
+   if(req.isAuthenticated()){
+      Post.find({}, function(err, posts){
+         res.render("home", {
+            startingContent: homeStartingContent,
+            posts: posts
+       });
+    });
+    }else {
+      res.redirect("/login");
+    }
 });
 ////////////////authentication//////////////////////
 
@@ -120,6 +130,16 @@ app.get("/home", function(req, res){
     }else {
       res.redirect("/login");
     }
+});
+//////////////////////////////////////////removing a post////////////////////////////////////////////////
+app.get("/delete/:postId", function(req, res){
+    const post = req.params.postId;
+      Post.findByIdAndRemove(post, function(err){
+      if (!err) {
+        console.log("Successfully deleted checked item.");
+        res.redirect("/");
+      }
+    });
 });
 
 

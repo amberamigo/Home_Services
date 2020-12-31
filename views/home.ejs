@@ -10,10 +10,8 @@
     <p>
     <%=post.content.substring(0, 100) + " ..."%>
     <a href="/posts/<%=post._id%>">Read More</a>
-
+     <a href="/delete/<%=post._id%>">Remove </a>
     </p>
-
-
     <% }) %>
 
   <a href="/compose" class="btn btn-primary" >New Blog</a>
