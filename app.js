@@ -96,7 +96,7 @@ app.get("/", function(req, res){
        });
     });
     }else {
-      res.redirect("/login");
+      res.redirect("/register");
     }
 });
 ////////////////authentication//////////////////////
