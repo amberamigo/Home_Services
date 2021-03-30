@@ -16,6 +16,7 @@ const _ = require("lodash");
 
 mongoose.connect("mongodb+srv://amigo_blog:Test123@cluster0.dbkp6.mongodb.net/blogDB", {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.set("useCreateIndex", true);
+
 const postSchema = {
   title : String,
   content : String
@@ -231,6 +232,51 @@ app.get("/posts/:postId", function(req, res){
 
 });
 
+/////////////////////////window speech recognition///////////////
+
+// app.get("/listen", function(req, res){
+// const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+
+// var recognition = new SpeechRecognition();
+
+// var textbox = $("#textbox");
+
+// var instructions = $("#instructions");
+
+// var content = '';
+
+// recognition.continuous = true;
+
+// recognition.onstart = function () {
+//   instructions.text("Voice recognition is on");
+// }
+
+// recognition.onspeechend = function() {
+//   instructions.text("No Activity");
+// }
+
+// recognition.onerror = function() {
+//   instructions.text("Try Again");
+// }
+
+// recognition.onresult = function() {
+//   var current = event.resultIndex;
+//   var transcript = event.results[current][0].transcript;
+
+//   content+=transcript;
+//   textbox.val(content);
+// }
+
+// $("#start-btn").click(function(event) {
+//   if(content.length){
+//     content+=' ';
+//   }
+//   recognition.start();
+
+// });
+// });
+
+/////////////////////////----------------------//////////////////////
 let port = process.env.PORT;
 if (port == null || port == "") {
   port = 3000;
@@ -240,3 +286,6 @@ if (port == null || port == "") {
 app.listen(port, function() {
   console.log("Server started successfully");
 });
+
+
+///google credentials :- https://evening-headland-54486.herokuapp.com/auth/google/secrets
