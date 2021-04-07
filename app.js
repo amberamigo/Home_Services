@@ -14,12 +14,13 @@ const _ = require("lodash");
 
 
 
-mongoose.connect("mongodb+srv://amigo_blog:Test123@cluster0.dbkp6.mongodb.net/blogDB", {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb+srv://amigo_blog:Test123@cluster0.dbkp6.mongodb.net/servicesDB", {useNewUrlParser: true, useUnifiedTopology: true});
 mongoose.set("useCreateIndex", true);
 
-const postSchema = {
-  title : String,
-  content : String
+const itemSchema = {
+  name : String,
+  price : Number,
+  img : String
 };
 
 app.use(express.static("public"));
@@ -78,9 +79,9 @@ passport.use(new GoogleStrategy({
 
 /////////////-----------------------------//////////////
 
-const Post = mongoose.model("Post", postSchema);
+const Post = mongoose.model("Post", itemSchema);
 
-const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
+const homeStartingContent = "My Cart";
 const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
 const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
@@ -89,16 +90,16 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 
 app.get("/", function(req, res){
-   if(req.isAuthenticated()){
+   // if(req.isAuthenticated()){
       Post.find({}, function(err, posts){
          res.render("home", {
             startingContent: homeStartingContent,
             posts: posts
        });
     });
-    }else {
-      res.redirect("/register");
-    }
+    // }else {
+    //   res.redirect("/register");
+    // }
 });
 ////////////////authentication//////////////////////
 
@@ -134,6 +135,8 @@ app.get("/home", function(req, res){
       res.redirect("/login");
     }
 });
+
+
 //////////////////////////////////////////removing a post////////////////////////////////////////////////
 app.get("/delete/:postId", function(req, res){
     const post = req.params.postId;
@@ -201,8 +204,9 @@ app.get("/compose", function(req, res){
 
 app.post("/compose", function(req, res){
   const post = new Post({
-    title: req.body.postTitle,
-    content: req.body.postBody
+    name: req.body.postTitle,
+    price: req.body.postBody,
+    img : req.body.postImage
   });
 
    post.save();
@@ -289,3 +293,19 @@ app.listen(port, function() {
 
 
 ///google credentials :- https://evening-headland-54486.herokuapp.com/auth/google/secrets
+
+///////////////////////////////////////////////////to add item item to cart, send a post req with route "/add-item/postId" ////////// 
+// app.get("/add-item/:postId", function(req, res) {
+//    const requestedPostId = req.params.postId;
+
+//   Post.findOne({_id : requestedPostId}, function(err, post){
+//      const post = new Post({
+//     name: req.body.postTitle,
+//     price: req.body.postBody,
+//     img : req.body.postImage
+//   });
+
+//    post.save();
+//    res.redirect("/");
+//   )};
+// });
