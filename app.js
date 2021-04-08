@@ -26,6 +26,7 @@ const itemSchema = {
 
 const cartSchema = {
   userId : String, 
+  productId : String,
   name : String,
   price : Number,
   img : String
@@ -258,12 +259,14 @@ app.get("/front-page", function(req, res){
 ///////////////////////////////////////////////////to add item item to cart, send a post req with route "/add-item/postId" ////////// 
 app.post("/add-to-cart/:postId", function(req, res) {
    const requestedPostId = req.params.postId;
-  CartItem.find({_id : requestedPostId, userId : req.user.username}, function(err, availableItems){
-    console.log(availableItems);
-  });
+
+  CartItem.find({productId : requestedPostId, userId : req.user.username}, function(err, availableItems){
+  if(!availableItems.length)
+  {
   AvailableItem.findOne({_id : requestedPostId}, function(err, item){
      const newItem = new CartItem({
     userId : req.user.username,
+    productId : requestedPostId,
     name: item.name,
     price: item.price,
     img : item.img
@@ -271,6 +274,9 @@ app.post("/add-to-cart/:postId", function(req, res) {
      // console.log(req.username);
 
    newItem.save();
+  });
+}
+});
   
   //  popup.alert({
   //   content: 'added to cart'
@@ -278,7 +284,7 @@ app.post("/add-to-cart/:postId", function(req, res) {
     // toast("A new game has been added to your cart");
 
    res.redirect("/front-page");
-  });
+  
 });
 
 
