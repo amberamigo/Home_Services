@@ -23,6 +23,15 @@ const itemSchema = {
   img : String
 };
 
+
+const cartSchema = {
+  userId : String, 
+  name : String,
+  price : Number,
+  img : String
+};
+
+
 app.use(express.static("public"));
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({
@@ -71,7 +80,7 @@ passport.use(new GoogleStrategy({
     proxy: true
   },
   function(accessToken, refreshToken, profile, cb) {
-    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+  User.findOrCreate({ username: profile.emails[0].value, googleId: profile.id, }, function (err, user) {
       return cb(err, user);
     });
   }
@@ -79,7 +88,8 @@ passport.use(new GoogleStrategy({
 
 /////////////-----------------------------//////////////
 
-const Post = mongoose.model("Post", itemSchema);
+const AvailableItem = mongoose.model("AvailableItem", itemSchema);
+const CartItem = new mongoose.model("CartItem", cartSchema);
 
 const homeStartingContent = "My Cart";
 const aboutContent = "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
@@ -90,16 +100,19 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 
 app.get("/", function(req, res){
-   // if(req.isAuthenticated()){
-      Post.find({}, function(err, posts){
+   if(req.isAuthenticated()){
+      CartItem.find({userId : req.user.username}, function(err, posts){
          res.render("home", {
             startingContent: homeStartingContent,
             posts: posts
        });
+         // console.log(req.user.username);
+
     });
-    // }else {
-    //   res.redirect("/register");
-    // }
+    }else {
+      res.redirect("/register");
+    }
+
 });
 ////////////////authentication//////////////////////
 
@@ -124,23 +137,14 @@ app.get("/register", function(req, res){
     res.render("register");
 });
 app.get("/home", function(req, res){
-    if(req.isAuthenticated()){
-      Post.find({}, function(err, posts){
-         res.render("home", {
-            startingContent: homeStartingContent,
-            posts: posts
-       });
-    });
-    }else {
-      res.redirect("/login");
-    }
+    res.redirect("/");
 });
 
 
 //////////////////////////////////////////removing a post////////////////////////////////////////////////
 app.get("/delete/:postId", function(req, res){
     const post = req.params.postId;
-      Post.findByIdAndRemove(post, function(err){
+      CartItem.findOneAndDelete({_id : post, userId : req.user.username}, function(err){
       if (!err) {
         console.log("Successfully deleted checked item.");
         res.redirect("/");
@@ -203,21 +207,21 @@ app.get("/compose", function(req, res){
 });
 
 app.post("/compose", function(req, res){
-  const post = new Post({
+  const availableItem = new AvailableItem({
     name: req.body.postTitle,
     price: req.body.postBody,
     img : req.body.postImage
   });
 
-   post.save();
-   res.redirect("/home");
+   availableItem.save();
+   res.redirect("/front-page");
  });
 
 
 app.get("/posts/:postId", function(req, res){
   const requestedPostId = req.params.postId;
 
-  Post.findOne({_id : requestedPostId}, function(err, post){
+  AvailableItem.findOne({_id : requestedPostId}, function(err, post){
      res.render("post", {
         title : post.title,
         content : post.content
@@ -236,49 +240,49 @@ app.get("/posts/:postId", function(req, res){
 
 });
 
-/////////////////////////window speech recognition///////////////
 
-// app.get("/listen", function(req, res){
-// const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+app.get("/success", function(req, res){
+   res.send("success");
+});
+/////////////////////////////demo front page ////////////////////////////////////////
 
-// var recognition = new SpeechRecognition();
+app.get("/front-page", function(req, res){
+    AvailableItem.find({}, function(err, availableItems){
+         res.render("frontPage", {
+            availableItems: availableItems
+       });
+    });
+});
 
-// var textbox = $("#textbox");
 
-// var instructions = $("#instructions");
+///////////////////////////////////////////////////to add item item to cart, send a post req with route "/add-item/postId" ////////// 
+app.post("/add-to-cart/:postId", function(req, res) {
+   const requestedPostId = req.params.postId;
+  CartItem.find({_id : requestedPostId, userId : req.user.username}, function(err, availableItems){
+    console.log(availableItems);
+  });
+  AvailableItem.findOne({_id : requestedPostId}, function(err, item){
+     const newItem = new CartItem({
+    userId : req.user.username,
+    name: item.name,
+    price: item.price,
+    img : item.img
+  });
+     // console.log(req.username);
 
-// var content = '';
+   newItem.save();
+  
+  //  popup.alert({
+  //   content: 'added to cart'
+  // });
+    // toast("A new game has been added to your cart");
 
-// recognition.continuous = true;
+   res.redirect("/front-page");
+  });
+});
 
-// recognition.onstart = function () {
-//   instructions.text("Voice recognition is on");
-// }
 
-// recognition.onspeechend = function() {
-//   instructions.text("No Activity");
-// }
 
-// recognition.onerror = function() {
-//   instructions.text("Try Again");
-// }
-
-// recognition.onresult = function() {
-//   var current = event.resultIndex;
-//   var transcript = event.results[current][0].transcript;
-
-//   content+=transcript;
-//   textbox.val(content);
-// }
-
-// $("#start-btn").click(function(event) {
-//   if(content.length){
-//     content+=' ';
-//   }
-//   recognition.start();
-
-// });
-// });
 
 /////////////////////////----------------------//////////////////////
 let port = process.env.PORT;
@@ -294,18 +298,3 @@ app.listen(port, function() {
 
 ///google credentials :- https://evening-headland-54486.herokuapp.com/auth/google/secrets
 
-///////////////////////////////////////////////////to add item item to cart, send a post req with route "/add-item/postId" ////////// 
-// app.get("/add-item/:postId", function(req, res) {
-//    const requestedPostId = req.params.postId;
-
-//   Post.findOne({_id : requestedPostId}, function(err, post){
-//      const post = new Post({
-//     name: req.body.postTitle,
-//     price: req.body.postBody,
-//     img : req.body.postImage
-//   });
-
-//    post.save();
-//    res.redirect("/");
-//   )};
-// });
